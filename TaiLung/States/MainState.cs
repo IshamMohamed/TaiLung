@@ -7,6 +7,6 @@ namespace TaiLung.States
 {
     public class MainState
     {
-        public string GeneralProperty { get; set; }
+        public int GeneralProperty { get; set; }
     }
 }
