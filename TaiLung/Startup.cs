@@ -74,7 +74,9 @@ namespace TaiLung
                     throw new InvalidOperationException("BotFrameworkOptions must be configured prior to setting up the state accessors");
                 var conversationState = options.State.OfType<ConversationState>().FirstOrDefault() ??
                     throw new InvalidOperationException("ConversationState must be defined and added before adding conversation-scoped state accessors.");
-                return new MainBotAccessors(conversationState);
+                var userState = options.State.OfType<UserState>().FirstOrDefault() ??
+                    throw new InvalidOperationException("UserState must be defined and added before adding user-scoped state accessors.");
+                return new MainBotAccessors(conversationState, userState);
             });
         }
 
