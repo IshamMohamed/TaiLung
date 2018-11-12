@@ -62,7 +62,9 @@ namespace TaiLung
                 options.CredentialProvider = new SimpleCredentialProvider(endpointService.AppId, endpointService.AppPassword);
 
                 // For development purposes only!In - memory store.The actual number seems to be Blob or something 
-                options.State.Add(new ConversationState(new MemoryStorage()));
+                var storage = new MemoryStorage();
+                options.State.Add(new ConversationState(storage));
+                options.State.Add(new UserState(storage));
             });
 
             // Add MainBotAccessor for state management
