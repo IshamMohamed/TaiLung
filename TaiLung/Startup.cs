@@ -3,12 +3,14 @@ using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Integration;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Configuration;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace TaiLung
 {
@@ -61,6 +63,16 @@ namespace TaiLung
 
                 // For development purposes only!In - memory store.The actual number seems to be Blob or something 
                 options.State.Add(new ConversationState(new MemoryStorage()));
+            });
+
+            // Add MainBotAccessor for state management
+            services.AddSingleton(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<BotFrameworkOptions>>().Value ??
+                    throw new InvalidOperationException("BotFrameworkOptions must be configured prior to setting up the state accessors");
+                var conversationState = options.State.OfType<ConversationState>().FirstOrDefault() ??
+                    throw new InvalidOperationException("ConversationState must be defined and added before adding conversation-scoped state accessors.");
+                return new MainBotAccessors(conversationState);
             });
         }
 
