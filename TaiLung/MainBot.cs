@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
@@ -10,9 +11,15 @@ namespace TaiLung
     public class MainBot : IBot
     {
         private ILogger Logger { get; }
-        private MainBotAccessors MyBotAccessors { get; }
+        private MainBotAccessors MainBotAccessors { get; }
 
         private DialogSet Dialogs { get; }
+
+        public MainBot(MainBotAccessors mainBotAccessors, ILoggerFactory loggerFactory)
+        {
+            MainBotAccessors = mainBotAccessors ?? throw new ArgumentNullException(nameof(mainBotAccessors));
+            Logger = loggerFactory?.CreateLogger<MainBot>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+        }
 
         public async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
         {
