@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
 
 namespace TaiLung
@@ -13,9 +14,16 @@ namespace TaiLung
 
         private DialogSet Dialogs { get; }
 
-        public Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new System.NotImplementedException();
+            if (turnContext.Activity.Type == ActivityTypes.Message)
+            {
+                await turnContext.SendActivityAsync($"{ turnContext.Activity.Text}");
+            }
+            else
+            {
+                await turnContext.SendActivityAsync($"{turnContext.Activity.Type} event detected");
+            }
         }
     }
 }
