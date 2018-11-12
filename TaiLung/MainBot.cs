@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TaiLung;
 
-namespace MainBot
+namespace TaiLung
 {
     public class MainBot : IBot
     {
@@ -16,9 +16,9 @@ namespace MainBot
 
         private DialogSet Dialogs { get; }
 
-        public MainBot(MainBotAccessors MainBotAccessors, ILoggerFactory loggerFactory)
+        public MainBot(MainBotAccessors mainBotAccessors, ILoggerFactory loggerFactory)
         {
-            MainBotAccessors = MainBotAccessors ?? throw new ArgumentNullException(nameof(MainBotAccessors));
+            MainBotAccessors = mainBotAccessors ?? throw new ArgumentNullException(nameof(MainBotAccessors));
             Logger = loggerFactory?.CreateLogger<MainBot>() ?? throw new ArgumentNullException(nameof(loggerFactory));
 
             Dialogs = new DialogSet(MainBotAccessors.ConversationDialogState);
