@@ -8,17 +8,27 @@ namespace TaiLung
 {
     public class MainBotAccessors
     {
-        private BotState generalBotState { get; }
-        public IStatePropertyAccessor<MainState> mainState { get; }
-        public IStatePropertyAccessor<DialogState> dialogState { get; } //DialogState comes from using Microsoft.Bot.Builder.Dialogs;
+        private ConversationState ConversationState { get; }
+        private UserState UserState { get; }
+        public IStatePropertyAccessor<DialogState> ConversationDialogState { get; }
+        public IStatePropertyAccessor<UserProfile> UserProfile { get; } 
 
-        public MainBotAccessors(BotState botState)
+        public MainBotAccessors(ConversationState conversationState, UserState userState)
         {
-            generalBotState = botState ?? throw new ArgumentNullException(nameof(botState));
-            mainState = generalBotState.CreateProperty<MainState>($"{nameof(MainBotAccessors)}.{nameof(MainState)}");
-            dialogState = generalBotState.CreateProperty<DialogState>($"{nameof(MainBotAccessors)}.{nameof(DialogState)}");
+            ConversationState = conversationState ?? throw new ArgumentNullException(nameof(conversationState));
+            UserState = userState ?? throw new ArgumentNullException(nameof(userState));
+            ConversationDialogState = ConversationState.CreateProperty<DialogState>($"{nameof(MainBotAccessors)}.{nameof(ConversationDialogState)}");
+            UserProfile = UserState.CreateProperty<UserProfile>($"{nameof(MainBotAccessors)}.{nameof(UserProfile)}");
         }
 
-        public Task SaveChangesAsync(ITurnContext turnContext) => generalBotState.SaveChangesAsync(turnContext);
+        public Task SaveConversationStateChangesAsync(ITurnContext turnContext) => ConversationState.SaveChangesAsync(turnContext);
+        public Task SaveUserStateChangesAsync(ITurnContext turnContext) => UserState.SaveChangesAsync(turnContext);
+
+        public async Task SaveChangesAsync(ITurnContext turnContext)
+        {
+            await SaveConversationStateChangesAsync(turnContext);
+            await SaveUserStateChangesAsync(turnContext);
+        }
+
     }
 }
