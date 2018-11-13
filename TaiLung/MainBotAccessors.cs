@@ -20,6 +20,7 @@ namespace TaiLung
             UserState = userState ?? throw new ArgumentNullException(nameof(userState));
             ConversationDialogState = ConversationState.CreateProperty<DialogState>($"{nameof(MainBotAccessors)}.{nameof(ConversationDialogState)}");
             UserProfile = UserState.CreateProperty<UserProfile>($"{nameof(MainBotAccessors)}.{nameof(UserProfile)}");
+            LanguagePreference = UserState.CreateProperty<string>("LanguagePreference");
         }
 
         public Task SaveConversationStateChangesAsync(ITurnContext turnContext) => ConversationState.SaveChangesAsync(turnContext);

@@ -86,7 +86,7 @@ namespace TaiLung
                     throw new InvalidOperationException("ConversationState must be defined and added before adding conversation-scoped state accessors.");
                 var userState = options.State.OfType<UserState>().FirstOrDefault() ??
                     throw new InvalidOperationException("UserState must be defined and added before adding user-scoped state accessors.");
-                return new MainBotAccessors(conversationState, userState) {LanguagePreference = userState.CreateProperty<string>("LanguagePreference")};
+                return new MainBotAccessors(conversationState, userState);
             });
         }
 

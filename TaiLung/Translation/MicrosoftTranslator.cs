@@ -12,7 +12,8 @@ namespace TaiLung.Translation
     public class MicrosoftTranslator
     {
         private const string Host = "https://api.cognitive.microsofttranslator.com";
-        private const string Path = "/translate?api-version=3.0";
+        private const string PathToTranslate = "/translate?api-version=3.0";
+        private const string PathToDetect = "/detect?api-version=3.0";
         private const string UriParams = "&to=";
 
         private static HttpClient _client = new HttpClient();
@@ -33,7 +34,7 @@ namespace TaiLung.Translation
 
             using (var request = new HttpRequestMessage())
             {
-                var uri = Host + Path + UriParams + targetLocale;
+                var uri = Host + PathToTranslate + UriParams + targetLocale;
                 request.Method = HttpMethod.Post;
                 request.RequestUri = new Uri(uri);
                 request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
@@ -44,6 +45,27 @@ namespace TaiLung.Translation
                 var result = JsonConvert.DeserializeObject<TranslatorResponse[]>(responseBody);
 
                 return result?.FirstOrDefault()?.Translations?.FirstOrDefault()?.Text;
+            }
+        }
+
+        public async Task<string> DetectLanguage(string text, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var body = new object[] { new { Text = text } };
+            var requestBody = JsonConvert.SerializeObject(body);
+
+            using (var request = new HttpRequestMessage())
+            {
+                var uri = Host + PathToDetect;
+                request.Method = HttpMethod.Post;
+                request.RequestUri = new Uri(uri);
+                request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+                request.Headers.Add("Ocp-Apim-Subscription-Key", _key);
+
+                var response = await _client.SendAsync(request, cancellationToken);
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<DetectionResponse[]>(responseBody);
+
+                return result?.FirstOrDefault()?.Language;
             }
         }
     }

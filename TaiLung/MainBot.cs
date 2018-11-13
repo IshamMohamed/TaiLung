@@ -15,7 +15,7 @@ namespace TaiLung
     {
         private const string English = "en";
         private const string Japanese = "ja";
-        private const string Hindi = "hi";
+        private const string Tamil = "ta";
         private const string Chinese = "zh";
 
         private ILogger Logger { get; }
@@ -114,7 +114,6 @@ namespace TaiLung
                     await MainBotAccessors.LanguagePreference.SetAsync(turnContext, turnContext.Activity.Text);
                     var reply = turnContext.Activity.CreateReply($"Your current language code is: {turnContext.Activity.Text}");
                     await turnContext.SendActivityAsync(reply, cancellationToken);
-                    await MainBotAccessors.SaveUserStateChangesAsync(turnContext);
                 }
                 else
                 {
@@ -124,9 +123,8 @@ namespace TaiLung
                     {
                         await dialogContext.BeginDialogAsync("details", null, cancellationToken);
                     }
-
-                    await MainBotAccessors.SaveChangesAsync(turnContext);
                 }
+                await MainBotAccessors.SaveChangesAsync(turnContext);
             }
             else
             {
@@ -144,7 +142,7 @@ namespace TaiLung
             }
 
             utterance = utterance.ToLower().Trim();
-            return utterance == English || utterance == Japanese || utterance == Hindi || utterance == Chinese;
+            return utterance == English || utterance == Japanese || utterance == Tamil || utterance == Chinese;
         }
     }
 }
