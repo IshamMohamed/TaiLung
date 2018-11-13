@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using TaiLung.Translation;
 
 namespace TaiLung
 {
@@ -63,8 +64,17 @@ namespace TaiLung
 
                 // For development purposes only!In - memory store.The actual number seems to be Blob or something 
                 var storage = new MemoryStorage();
-                options.State.Add(new ConversationState(storage));
-                options.State.Add(new UserState(storage));
+                var conversationState = new ConversationState(storage);
+                var userState = new UserState(storage);
+                options.State.Add(conversationState);
+                options.State.Add(userState);
+
+                // Translation
+                var translatorKey = "2faace0dff53457ca8538f7a635f73a8";
+                var translator = new MicrosoftTranslator(translatorKey);
+
+                var translationMiddleware = new TranslationMiddleware(translator, userState.CreateProperty<string>("LanguagePreference"));
+                options.Middleware.Add(translationMiddleware);
             });
 
             // Add MainBotAccessor for state management
@@ -76,7 +86,7 @@ namespace TaiLung
                     throw new InvalidOperationException("ConversationState must be defined and added before adding conversation-scoped state accessors.");
                 var userState = options.State.OfType<UserState>().FirstOrDefault() ??
                     throw new InvalidOperationException("UserState must be defined and added before adding user-scoped state accessors.");
-                return new MainBotAccessors(conversationState, userState);
+                return new MainBotAccessors(conversationState, userState) {LanguagePreference = userState.CreateProperty<string>("LanguagePreference")};
             });
         }
 

@@ -11,7 +11,8 @@ namespace TaiLung
         private ConversationState ConversationState { get; }
         private UserState UserState { get; }
         public IStatePropertyAccessor<DialogState> ConversationDialogState { get; }
-        public IStatePropertyAccessor<UserProfile> UserProfile { get; } 
+        public IStatePropertyAccessor<UserProfile> UserProfile { get; }
+        public IStatePropertyAccessor<string> LanguagePreference { get; set; }
 
         public MainBotAccessors(ConversationState conversationState, UserState userState)
         {

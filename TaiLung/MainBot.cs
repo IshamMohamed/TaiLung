@@ -3,14 +3,21 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TaiLung;
+using TaiLung.Translation;
 
 namespace TaiLung
 {
     public class MainBot : IBot
     {
+        private const string English = "en";
+        private const string Japanese = "ja";
+        private const string Hindi = "hi";
+        private const string Chinese = "zh";
+
         private ILogger Logger { get; }
         private MainBotAccessors MainBotAccessors { get; }
 
@@ -99,14 +106,27 @@ namespace TaiLung
             Logger.LogInformation($"{nameof(OnTurnAsync)} started");
             if (turnContext.Activity.Type == ActivityTypes.Message)
             {
-                var dialogContext = await Dialogs.CreateContextAsync(turnContext, cancellationToken);
-                var results = await dialogContext.ContinueDialogAsync(cancellationToken);
-                if (results.Status == DialogTurnStatus.Empty)
-                {
-                    await dialogContext.BeginDialogAsync("details", null, cancellationToken);
-                }
+                string userLanguage = await MainBotAccessors.LanguagePreference.GetAsync(turnContext, () => TranslationSettings.DefaultLanguage) ?? TranslationSettings.DefaultLanguage;
+                bool translate = userLanguage != TranslationSettings.DefaultLanguage;
 
-                await MainBotAccessors.SaveChangesAsync(turnContext);
+                if (IsLanguageChangeRequested(turnContext.Activity.Text))
+                {
+                    await MainBotAccessors.LanguagePreference.SetAsync(turnContext, turnContext.Activity.Text);
+                    var reply = turnContext.Activity.CreateReply($"Your current language code is: {turnContext.Activity.Text}");
+                    await turnContext.SendActivityAsync(reply, cancellationToken);
+                    await MainBotAccessors.SaveUserStateChangesAsync(turnContext);
+                }
+                else
+                {
+                    var dialogContext = await Dialogs.CreateContextAsync(turnContext, cancellationToken);
+                    var results = await dialogContext.ContinueDialogAsync(cancellationToken);
+                    if (results.Status == DialogTurnStatus.Empty)
+                    {
+                        await dialogContext.BeginDialogAsync("details", null, cancellationToken);
+                    }
+
+                    await MainBotAccessors.SaveChangesAsync(turnContext);
+                }
             }
             else
             {
@@ -114,6 +134,17 @@ namespace TaiLung
             }
 
             Logger.LogInformation($"{nameof(OnTurnAsync)} ended");
+        }
+
+        private static bool IsLanguageChangeRequested(string utterance)
+        {
+            if (string.IsNullOrEmpty(utterance))
+            {
+                return false;
+            }
+
+            utterance = utterance.ToLower().Trim();
+            return utterance == English || utterance == Japanese || utterance == Hindi || utterance == Chinese;
         }
     }
 }
