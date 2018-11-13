@@ -27,19 +27,19 @@ namespace TaiLung
             // This time I wrote in lambda to put it in one place, but I think that it is usually better to pass some class method. 
             Dialogs.Add(new WaterfallDialog("details", new WaterfallStep[]
             {
-                (stepContext, cancellationToken) => stepContext.PromptAsync("name", new PromptOptions { Prompt = MessageFactory.Text("Name?") }, cancellationToken),
+                (stepContext, cancellationToken) => stepContext.PromptAsync("name", new PromptOptions { Prompt = MessageFactory.Text("What is your name?") }, cancellationToken),
                 async (stepContext, cancellationToken) =>
                 {
                     var userProfile = await MainBotAccessors.UserProfile.GetAsync(stepContext.Context, () => new UserProfile(), cancellationToken);
                     userProfile.Name = (string)stepContext.Result;
-                    await stepContext.Context.SendActivityAsync($"Thanks! {userProfile.Name} !!", cancellationToken: cancellationToken);
+                    await stepContext.Context.SendActivityAsync($"Thanks {userProfile.Name} !!", cancellationToken: cancellationToken);
                     return await stepContext.PromptAsync("confirm", new PromptOptions { Prompt = MessageFactory.Text("Can you tell me your age?") }, cancellationToken);
                 },
                 async (stepContext, cancellationToken) =>
                 {
                     if ((bool)stepContext.Result)
                     {
-                        return await stepContext.PromptAsync("age", new PromptOptions {Prompt = MessageFactory.Text("Thank you for putting your age!")}, cancellationToken);
+                        return await stepContext.PromptAsync("age", new PromptOptions {Prompt = MessageFactory.Text("So, how old are you?")}, cancellationToken);
                     }
                     else
                     {
@@ -62,7 +62,7 @@ namespace TaiLung
                         await stepContext.Context.SendActivityAsync($"{userProfile.Age} years old!!", cancellationToken: cancellationToken);
                    }
 
-                    return await stepContext.PromptAsync("confirm", new PromptOptions { Prompt = MessageFactory.Text("correct?") }, cancellationToken);
+                    return await stepContext.PromptAsync("confirm", new PromptOptions { Prompt = MessageFactory.Text("Is it correct?") }, cancellationToken);
                 },
                 async (stepContext, cancellationToken) =>
                 {
@@ -71,11 +71,11 @@ namespace TaiLung
                         var userProfile = await MainBotAccessors.UserProfile.GetAsync(stepContext.Context, () => new UserProfile(), cancellationToken);
                         if (userProfile.Age == -1)
                         {
-                            await stepContext.Context.SendActivityAsync($"Mysterious {userProfile.Name} You know.！", cancellationToken: cancellationToken);
+                            await stepContext.Context.SendActivityAsync($"Mysterious {userProfile.Name}", cancellationToken: cancellationToken);
                         }
                         else
                         {
-                            await stepContext.Context.SendActivityAsync($"{userProfile.Age} of age {userProfile.Name} You know!", cancellationToken: cancellationToken);
+                            await stepContext.Context.SendActivityAsync($"{userProfile.Name} is {userProfile.Age} years old!", cancellationToken: cancellationToken);
                         }
                     }
                     else
