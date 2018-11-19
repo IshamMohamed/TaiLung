@@ -20,16 +20,13 @@ namespace TaiLung
 
         private ILogger Logger { get; }
         private MainBotAccessors MainBotAccessors { get; }
-
         private DialogSet Dialogs { get; }
 
         public MainBot(MainBotAccessors mainBotAccessors, ILoggerFactory loggerFactory)
         {
-            MainBotAccessors = mainBotAccessors ?? throw new ArgumentNullException(nameof(MainBotAccessors));
             Logger = loggerFactory?.CreateLogger<MainBot>() ?? throw new ArgumentNullException(nameof(loggerFactory));
-
+            MainBotAccessors = mainBotAccessors ?? throw new ArgumentNullException(nameof(MainBotAccessors));
             Dialogs = new DialogSet(MainBotAccessors.ConversationDialogState);
-
             // Register WaterfallDialog. Pass an array of Task <DialogTurnResult> Xxx (WaterfallStepContext, CancellationToken) as an argument. 
             // This time I wrote in lambda to put it in one place, but I think that it is usually better to pass some class method. 
             Dialogs.Add(new WaterfallDialog("details", new WaterfallStep[]
@@ -93,6 +90,7 @@ namespace TaiLung
 
                     return await stepContext.EndDialogAsync(cancellationToken: cancellationToken);
                 }
+
             }));
 
             // We also add a dialog calling with PromptAsync in WaterfallDialog. 
@@ -108,6 +106,8 @@ namespace TaiLung
             {
                 string userLanguage = await MainBotAccessors.LanguagePreference.GetAsync(turnContext, () => TranslationSettings.DefaultLanguage) ?? TranslationSettings.DefaultLanguage;
                 bool translate = userLanguage != TranslationSettings.DefaultLanguage;
+                bool isLoginPrompted = await MainBotAccessors.IsLoginPrompted.GetAsync(turnContext, () => false);
+                bool isAuthenticated = await MainBotAccessors.IsAuthenticated.GetAsync(turnContext, () => false);
 
                 if (IsLanguageChangeRequested(turnContext.Activity.Text))
                 {
@@ -115,7 +115,7 @@ namespace TaiLung
                     var reply = turnContext.Activity.CreateReply($"Your current language code is: {turnContext.Activity.Text}");
                     await turnContext.SendActivityAsync(reply, cancellationToken);
                 }
-                else
+                else if (isAuthenticated)
                 {
                     var dialogContext = await Dialogs.CreateContextAsync(turnContext, cancellationToken);
                     var results = await dialogContext.ContinueDialogAsync(cancellationToken);
@@ -123,6 +123,31 @@ namespace TaiLung
                     {
                         await dialogContext.BeginDialogAsync("details", null, cancellationToken);
                     }
+                }
+                else if (!isLoginPrompted)
+                {
+                    var reply = turnContext.Activity.CreateReply();
+
+                    var card = new HeroCard
+                    {
+                        Buttons = new List<CardAction>()
+                        {
+                            //new CardAction(title: "Sign In", type: ActionTypes.PostBack, value: "Please sign in to your Azure account"),
+                            new CardAction(ActionTypes.OpenUrl, title: "Click here to sign in", value: "https://azure.microsoft.com/en-us/services/bot-service/"),
+                        },
+                    };
+
+                    reply.Attachments = new List<Attachment>() { card.ToAttachment() };
+                    //IsLoginPrompted = true;
+                    await MainBotAccessors.IsLoginPrompted.SetAsync(turnContext, true);
+                    await turnContext.SendActivityAsync(reply, cancellationToken);
+                }
+                else if (isLoginPrompted && !isAuthenticated)
+                {
+                    var reply = turnContext.Activity.Text;
+                    if (reply.Equals("3344"))
+                        //IsAuthenticated = true;
+                        await MainBotAccessors.IsAuthenticated.SetAsync(turnContext, true);
                 }
                 await MainBotAccessors.SaveChangesAsync(turnContext);
             }

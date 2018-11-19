@@ -13,6 +13,8 @@ namespace TaiLung
         public IStatePropertyAccessor<DialogState> ConversationDialogState { get; }
         public IStatePropertyAccessor<UserProfile> UserProfile { get; }
         public IStatePropertyAccessor<string> LanguagePreference { get; set; }
+        public IStatePropertyAccessor<bool> IsLoginPrompted { get; set; }
+        public IStatePropertyAccessor<bool> IsAuthenticated { get; set; }
 
         public MainBotAccessors(ConversationState conversationState, UserState userState)
         {
@@ -21,6 +23,8 @@ namespace TaiLung
             ConversationDialogState = ConversationState.CreateProperty<DialogState>($"{nameof(MainBotAccessors)}.{nameof(ConversationDialogState)}");
             UserProfile = UserState.CreateProperty<UserProfile>($"{nameof(MainBotAccessors)}.{nameof(UserProfile)}");
             LanguagePreference = UserState.CreateProperty<string>("LanguagePreference");
+            IsLoginPrompted = UserState.CreateProperty<bool>("IsLoginPrompted");
+            IsAuthenticated = UserState.CreateProperty<bool>("IsAuthenticated");
         }
 
         public Task SaveConversationStateChangesAsync(ITurnContext turnContext) => ConversationState.SaveChangesAsync(turnContext);
